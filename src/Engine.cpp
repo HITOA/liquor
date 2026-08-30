@@ -70,7 +70,7 @@ void LiquorChess::Engine::Search()
         int32_t a = -20000;
         int32_t b = 20000;
 
-        for (auto move : moves)
+        for (auto& move : moves)
         {
             copiedBoard.makeMove(move);
             int32_t s = -Negamax(copiedBoard, depth - 1, -b, -a, nodes);

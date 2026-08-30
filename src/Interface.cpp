@@ -4,6 +4,8 @@
 
 #include <thread>
 
+#include "Version.hpp"
+
 
 LiquorChess::Interface::Interface(std::basic_istream<char>* input, std::basic_ostream<char>* output)
     : input{ input }, output{ output }, inputEvents{}, outputEvents{}, engine{ nullptr }
@@ -13,7 +15,7 @@ LiquorChess::Interface::Interface(std::basic_istream<char>* input, std::basic_os
 
 void LiquorChess::Interface::Init()
 {
-    outputEvents.Push(AllocateEvent<IdentifyNameEvent>("Liquor"));
+    outputEvents.Push(AllocateEvent<IdentifyNameEvent>(LIQUOR_FULL_NAME));
     outputEvents.Push(AllocateEvent<IdentifyAuthorEvent>("HITO"));
     outputEvents.Push(AllocateEvent<InterfaceInitializedEvent>());
 }
