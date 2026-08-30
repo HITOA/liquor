@@ -14,8 +14,6 @@ jobs:
             artifact_name: Liquor-linux-x64
           - os: windows-latest
             artifact_name: Liquor-windows-x64.exe
-          - os: macos-latest
-            artifact_name: Liquor-macos-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -26,7 +24,7 @@ jobs:
 
       - name: Install latest CMake
         uses: lukka/get-cmake@latest
-        
+
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
