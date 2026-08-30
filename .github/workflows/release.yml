@@ -24,6 +24,9 @@ jobs:
         with:
           fetch-depth: 0   # full history, needed for git describe to see tags
 
+      - name: Install latest CMake
+        uses: lukka/get-cmake@latest
+        
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -53,7 +56,6 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
