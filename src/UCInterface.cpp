@@ -30,6 +30,9 @@ std::string LiquorChess::UCInterface::SerializeEvent(Event* event)
         serializeEvent += " time " + std::to_string(e->Time());
         serializeEvent += " nodes " + std::to_string(e->Nodes());
         serializeEvent += " score cp " + std::to_string(e->Score());
+        serializeEvent += " pv";
+        for (auto move : e->Pv())
+            serializeEvent += " " + chess::uci::moveToUci(move);
         return serializeEvent;
     }
     return std::string{};

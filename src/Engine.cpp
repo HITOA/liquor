@@ -68,7 +68,8 @@ void LiquorChess::Engine::OnSearchInfo(std::unique_ptr<SearchInfo> info) const
                     si->seldepth,
                     si->elapsed.count(),
                     si->nodes,
-                    si->score);
+                    si->score,
+                    si->pv);
                 break;
             }
         default:

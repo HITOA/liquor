@@ -21,6 +21,7 @@ namespace LiquorChess
 
     constexpr Centipawn CENTIPAWN_MATE = 32000;
     constexpr Centipawn CENTIPAWN_MATE_IN_MAX_PLY = CENTIPAWN_MATE - MAX_PLY;
+    constexpr Centipawn CENTIPAWN_MATED_IN_MAX_PLY = -CENTIPAWN_MATE_IN_MAX_PLY;
 
     constexpr bool IsValid(const Centipawn v) { return v != CENTIPAWN_NONE; }
 
@@ -30,5 +31,8 @@ namespace LiquorChess
     constexpr Centipawn IDEAL_ROOK      = 500;
     constexpr Centipawn IDEAL_QUEEN     = 900;
     constexpr Centipawn IDEAL_KING      = 5000;
+
+    constexpr size_t MAX_PV_LENGTH = 32;
+    constexpr size_t MAX_EXTENSION = 16;
 
 }

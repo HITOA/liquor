@@ -218,7 +218,9 @@ namespace LiquorChess
     {
     public:
         InfoEvent(uint32_t depth, uint32_t seldepth, uint32_t time, uint32_t nodes, Centipawn score) :
-            depth{ depth }, seldepth{ seldepth }, time{ time },  nodes{ nodes }, score{ score } {}
+            depth{ depth }, seldepth{ seldepth }, time{ time },  nodes{ nodes }, score{ score }, pv{} {}
+        InfoEvent(uint32_t depth, uint32_t seldepth, uint32_t time, uint32_t nodes, Centipawn score, std::vector<chess::Move> pv) :
+            depth{ depth }, seldepth{ seldepth }, time{ time },  nodes{ nodes }, score{ score }, pv{ std::move(pv) } {}
         ~InfoEvent() override = default;
 
         [[nodiscard]] uint32_t Depth() const { return depth; }
@@ -226,6 +228,7 @@ namespace LiquorChess
         [[nodiscard]] uint32_t Time() const { return time; }
         [[nodiscard]] uint32_t Nodes() const { return nodes; }
         [[nodiscard]] Centipawn Score() const { return score; }
+        [[nodiscard]] const std::vector<chess::Move>& Pv() const { return pv; }
 
     private:
         uint32_t depth;
@@ -233,6 +236,7 @@ namespace LiquorChess
         uint32_t time;
         uint32_t nodes;
         Centipawn score;
+        std::vector<chess::Move> pv;
     };
 
 }

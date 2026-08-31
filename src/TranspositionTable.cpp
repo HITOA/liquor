@@ -34,3 +34,18 @@ void LiquorChess::TranspositionTable::Resize(size_t size)
     size = std::pow(2, ceil(log(size - 1) / log(2)));
     entries.resize(size);
 }
+
+
+LiquorChess::Centipawn LiquorChess::TranspositionTable::ScoreToTT(Centipawn score, uint32_t ply)
+{
+    if (score >= CENTIPAWN_MATE_IN_MAX_PLY) return score + ply;
+    if (score <= CENTIPAWN_MATED_IN_MAX_PLY) return score - ply;
+    return score;
+}
+
+LiquorChess::Centipawn LiquorChess::TranspositionTable::ScoreFromTT(Centipawn score, uint32_t ply)
+{
+    if (score >= CENTIPAWN_MATE_IN_MAX_PLY) return score - ply;
+    if (score <= CENTIPAWN_MATED_IN_MAX_PLY) return score + ply;
+    return score;
+}

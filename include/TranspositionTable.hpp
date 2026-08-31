@@ -36,6 +36,9 @@ namespace LiquorChess
 
         void Resize(size_t size);
 
+        static Centipawn ScoreToTT(Centipawn score, uint32_t ply);
+        static Centipawn ScoreFromTT(Centipawn score, uint32_t ply);
+
     private:
         std::vector<TTEntry> entries;
     };
