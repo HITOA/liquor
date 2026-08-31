@@ -9,6 +9,8 @@
 
 #include <Chess.hpp>
 
+#include "Types.hpp"
+
 
 namespace LiquorChess
 {
@@ -215,7 +217,7 @@ namespace LiquorChess
     class InfoEvent : public Event
     {
     public:
-        InfoEvent(uint32_t depth, uint32_t seldepth, uint32_t time, uint32_t nodes, uint32_t score) :
+        InfoEvent(uint32_t depth, uint32_t seldepth, uint32_t time, uint32_t nodes, Centipawn score) :
             depth{ depth }, seldepth{ seldepth }, time{ time },  nodes{ nodes }, score{ score } {}
         ~InfoEvent() override = default;
 
@@ -223,14 +225,14 @@ namespace LiquorChess
         [[nodiscard]] uint32_t SelDepth() const { return seldepth; }
         [[nodiscard]] uint32_t Time() const { return time; }
         [[nodiscard]] uint32_t Nodes() const { return nodes; }
-        [[nodiscard]] uint32_t Score() const { return score; }
+        [[nodiscard]] Centipawn Score() const { return score; }
 
     private:
         uint32_t depth;
         uint32_t seldepth;
         uint32_t time;
         uint32_t nodes;
-        uint32_t score;
+        Centipawn score;
     };
 
 }

@@ -4,6 +4,7 @@
 
 #include <thread>
 
+#include "AlphaBetaSearch.hpp"
 #include "Version.hpp"
 
 
@@ -122,6 +123,6 @@ void LiquorChess::Interface::ReadyEngine()
 {
     if (engine == nullptr)
     {
-        engine = std::make_unique<Engine>(this);
+        engine = std::make_unique<Engine>(this, std::make_unique<AlphaBetaSearch<MinimalistHeuristic>>());
     }
 }

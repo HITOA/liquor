@@ -34,6 +34,12 @@ add_executable(LiquorChess
         include/PST.hpp
         include/PiecesValue.hpp
         include/Version.hpp
+        include/SearchEngine.hpp
+        include/Evaluator.hpp
+        include/AlphaBetaSearch.hpp
+        include/Types.hpp
+        include/TranspositionTable.hpp
+        src/TranspositionTable.cpp
 )
 
 target_include_directories(LiquorChess PRIVATE "include")
