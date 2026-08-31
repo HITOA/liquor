@@ -6,8 +6,8 @@
 
 #include <Chess.hpp>
 #include <Types.hpp>
-#include <PiecesValue.hpp>
-#include <PST.hpp>
+#include <Heuristic/Material.hpp>
+#include <Heuristic/PST.hpp>
 
 #include <concepts>
 #include <cstdint>
@@ -43,6 +43,15 @@ namespace LiquorChess
             return  (Heuristic::Material::Score(board, us) + Heuristic::Presence::Score(board, us)) -
                     (Heuristic::Material::Score(board, them) + Heuristic::Presence::Score(board, them));
         }
+    };
+
+    class HandCraftedEvaluator
+    {
+    public:
+        HandCraftedEvaluator() = default;
+        ~HandCraftedEvaluator() = default;
+
+        static Centipawn Evaluate(const chess::Board& board);
     };
 
 }

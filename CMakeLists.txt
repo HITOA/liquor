@@ -31,8 +31,8 @@ add_executable(LiquorChess
         src/UCInterface.cpp
         include/StringHash.hpp
         src/Engine.cpp
-        include/PST.hpp
-        include/PiecesValue.hpp
+        include/Heuristic/PST.hpp
+        include/Heuristic/Material.hpp
         include/Version.hpp
         include/SearchEngine.hpp
         include/Evaluator.hpp
@@ -40,6 +40,8 @@ add_executable(LiquorChess
         include/Types.hpp
         include/TranspositionTable.hpp
         src/TranspositionTable.cpp
+        src/HandCraftedEvaluator.cpp
+        include/Heuristic/PawnStructure.hpp
 )
 
 target_include_directories(LiquorChess PRIVATE "include")

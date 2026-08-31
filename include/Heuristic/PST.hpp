@@ -7,7 +7,7 @@
 #include <Chess.hpp>
 #include <cstdint>
 
-#include "Types.hpp"
+#include <Types.hpp>
 
 
 namespace LiquorChess::Heuristic::Presence

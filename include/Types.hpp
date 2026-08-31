@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include <cstdint>
 
 
@@ -31,6 +32,9 @@ namespace LiquorChess
     constexpr Centipawn IDEAL_ROOK      = 500;
     constexpr Centipawn IDEAL_QUEEN     = 900;
     constexpr Centipawn IDEAL_KING      = 5000;
+
+    constexpr Centipawn MAX_HISTORY = 97;
+    constexpr Centipawn MIN_HISTORY = -MAX_HISTORY;
 
     constexpr size_t MAX_PV_LENGTH = 32;
     constexpr size_t MAX_EXTENSION = 16;

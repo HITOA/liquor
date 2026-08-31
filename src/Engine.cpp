@@ -1,8 +1,8 @@
 #include <Engine.hpp>
 
 #include <Interface.hpp>
-#include <PST.hpp>
-#include <PiecesValue.hpp>
+#include <../include/Heuristic/PST.hpp>
+#include <../include/Heuristic/Material.hpp>
 
 #include <chrono>
 
@@ -47,7 +47,7 @@ void LiquorChess::Engine::Search(std::stop_token stop) const
 {
     SearchParameters parameters{
         board,
-        std::chrono::milliseconds{ 5000 },
+        std::chrono::milliseconds{ 7000 },
         this
     };
     chess::Move bestMove = searchEngine->Search(stop, parameters);

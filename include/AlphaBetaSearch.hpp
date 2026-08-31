@@ -74,15 +74,12 @@ namespace LiquorChess
                     info->seldepth = GetMaxPly();
                     info->nodes = GetNodeCount();
                     info->nps = GetNodeCount() * 1000 / duration.count();
-                    BuildPrincipalVariation(board, info->pv);
+                    UpdatePrincipalVariation(board, info->pv);
                     PushSearchInfo(parameters.observer, std::move(info));
                 }
 
                 remaining -= duration.count();
-                lastNodeCount = lastNodeCount > 0 ? lastNodeCount : GetNodeCount();
-                double mpn = static_cast<double>(duration.count()) / static_cast<double>(GetNodeCount());
-                double growth = static_cast<double>(GetNodeCount()) / static_cast<double>(lastNodeCount);
-                int64_t estimate = static_cast<int64_t>((GetNodeCount() * growth) * mpn);
+                int64_t estimate = duration.count() * 2.5;
                 if (estimate > remaining)
                     break;
 
@@ -95,8 +92,9 @@ namespace LiquorChess
         }
 
     private:
-        void BuildPrincipalVariation(chess::Board board, std::vector<chess::Move>& pv)
+        void UpdatePrincipalVariation(chess::Board board, std::vector<chess::Move>& pv)
         {
+            pv.clear();
             for (size_t i = 0; i < MAX_PV_LENGTH; ++i)
             {
                 TranspositionTable::TTEntry* entry = tt.Probe(board.hash());
@@ -115,7 +113,7 @@ namespace LiquorChess
         {
             IncrementNodeCount();
 
-            if (board.isRepetition() || board.isHalfMoveDraw())
+            if (board.isRepetition(1) || board.isHalfMoveDraw())
                 return CENTIPAWN_DRAW;
 
             if (board.inCheck() && extension < MAX_EXTENSION)
@@ -128,6 +126,7 @@ namespace LiquorChess
                 return Quiescence(board, ply, alpha, beta);
 
             Centipawn originalAlpha = alpha;
+            Centipawn originalBeta = beta;
 
             chess::Move ttMove{};
             if (TranspositionTable::TTEntry* entry = tt.Probe(board.hash()))
@@ -151,20 +150,28 @@ namespace LiquorChess
             if (legalMoves.empty())
                 return CENTIPAWN_DRAW;
 
-            OrderMoveList(board, legalMoves, ttMove, ply);
+            ScoreMoveList(board, legalMoves, ttMove, ply);
 
             chess::Move bestMove{};
             Centipawn bestScore = -CENTIPAWN_INFINITE;
 
             for (size_t i = 0; i < legalMoves.size(); ++i)
             {
-                chess::Move& move = legalMoves[i];
+                chess::Move& move = PickBest(legalMoves.begin() + i, legalMoves.end());
+
                 MakeMove(board, move);
+
                 int32_t score = 0;
+
                 if (i > 0)
-                    score = -Negamax(board, limit - 1, ply + 1, extension, -alpha - 1, -alpha);
+                {
+                    uint32_t reducing = ReduceDepth(board, move, limit, ply, i);
+                    score = -Negamax(board, limit - 1 - reducing, ply + 1, extension, -alpha - 1, -alpha);
+                }
+
                 if (i == 0 || (score > alpha && score < beta))
                     score = -Negamax(board, limit - 1, ply + 1, extension, -beta, -alpha);
+
                 UnmakeMove(board, move);
 
                 if (score > bestScore)
@@ -175,10 +182,14 @@ namespace LiquorChess
                 alpha = std::max(alpha, bestScore);
                 if (alpha >= beta)
                 {
-                    if (!board.isCapture(move) && move != killers[ply][0])
+                    if (!board.isCapture(move))
                     {
-                        killers[ply][1] = killers[ply][0];
-                        killers[ply][0] = move;
+                        UpdateHistory(board.sideToMove(), move.from(), move.to(), limit * limit);
+                        if (move != killers[ply][0])
+                        {
+                            killers[ply][1] = killers[ply][0];
+                            killers[ply][0] = move;
+                        }
                     }
                     break;
                 }
@@ -186,7 +197,7 @@ namespace LiquorChess
 
             TranspositionTable::TTEntry::Flag flag =
                 bestScore <= originalAlpha ? TranspositionTable::TTEntry::Flag::UPPERBOUND
-              : bestScore >= beta          ? TranspositionTable::TTEntry::Flag::LOWERBOUND
+              : bestScore >= originalBeta  ? TranspositionTable::TTEntry::Flag::LOWERBOUND
               : TranspositionTable::TTEntry::Flag::EXACT;
             tt.Store(board.hash(), bestMove, TranspositionTable::ScoreToTT(bestScore, ply), limit, flag);
 
@@ -198,7 +209,11 @@ namespace LiquorChess
             IncrementNodeCount();
             MaxPly(ply);
 
+            if (ply >= MAX_PLY)
+                return evaluator.Evaluate(board);
+
             Centipawn originalAlpha = alpha;
+            Centipawn originalBeta = beta;
 
             chess::Move ttMove{};
             if (TranspositionTable::TTEntry* entry = tt.Probe(board.hash()))
@@ -228,15 +243,15 @@ namespace LiquorChess
                 chess::movegen::legalmoves<chess::movegen::MoveGenType::CAPTURE>(legalMoves, board);
 
             if (legalMoves.empty())
-                return board.inCheck() ? CENTIPAWN_MATE + ply : bestScore;
+                return board.inCheck() ? -CENTIPAWN_MATE + ply : bestScore;
 
-            OrderMoveList(board, legalMoves, ttMove, ply);
+            ScoreMoveList(board, legalMoves, ttMove, ply);
 
             chess::Move bestMove{};
 
             for (size_t i = 0; i < legalMoves.size(); ++i)
             {
-                chess::Move& move = legalMoves[i];
+                chess::Move& move = PickBest(legalMoves.begin() + i, legalMoves.end());
                 MakeMove(board, move);
                 int32_t score = 0;
                 if (i > 0)
@@ -259,7 +274,7 @@ namespace LiquorChess
             {
                 TranspositionTable::TTEntry::Flag flag =
                     bestScore <= originalAlpha ? TranspositionTable::TTEntry::Flag::UPPERBOUND
-                  : bestScore >= beta          ? TranspositionTable::TTEntry::Flag::LOWERBOUND
+                  : bestScore >= originalBeta  ? TranspositionTable::TTEntry::Flag::LOWERBOUND
                   : TranspositionTable::TTEntry::Flag::EXACT;
                 tt.Store(board.hash(), bestMove, TranspositionTable::ScoreToTT(bestScore, ply), 0, flag);
             }
@@ -267,29 +282,47 @@ namespace LiquorChess
             return bestScore;
         }
 
-        void OrderMoveList(chess::Board& board, chess::Movelist& moves, chess::Move ttMove, uint32_t ply)
+        chess::Move& PickBest(chess::Move* begin, chess::Move* end)
+        {
+            chess::Move* best = begin;
+
+            for (chess::Move* it = begin + 1; it != end; ++it)
+            {
+                if (it->score() > best->score())
+                    best = it;
+            }
+            std::swap(*best, *begin);
+            return *begin;
+        }
+
+        uint32_t ReduceDepth(chess::Board& board, chess::Move& move, uint32_t depth, uint32_t ply, size_t moveIndex)
+        {
+            if (depth < 3 || moveIndex < 3)
+                return 0;
+            if (board.inCheck())
+                return 0;
+            if (move == killers[ply][0] || move == killers[ply][1])
+                return 0;
+            return std::min<uint32_t>(depth / 3, 2);
+        }
+
+        void ScoreMoveList(chess::Board& board, chess::Movelist& moves, chess::Move ttMove, uint32_t ply)
         {
             for (auto& move : moves)
             {
-                if (move == ttMove) move.setScore(10000);
-                else if (board.isCapture(move)) move.setScore(MvvLvaScore(board, move));
-                else if (move == killers[ply][0]) move.setScore(10);
-                else if (move == killers[ply][1]) move.setScore(9);
-                else move.setScore(0);
+                if (move == ttMove) move.setScore(20000);
+                else if (board.isCapture(move)) move.setScore(MvvLvaScore(board, move)); // Max is 8900, min is 100
+                else if (move == killers[ply][0]) move.setScore(99);
+                else if (move == killers[ply][1]) move.setScore(98);
+                else move.setScore(history[static_cast<size_t>(board.sideToMove().internal())][move.from().index()][move.to().index()]);
             }
-            std::sort(moves.begin(), moves.end(), [ttMove](chess::Move& v1, chess::Move& v2)
-            {
-                if (v1 == ttMove) return true;
-                if (v2 == ttMove) return false;
-                return v1.score() > v2.score();
-            });
         }
 
         Centipawn MvvLvaScore(chess::Board& board, chess::Move& move)
         {
             Centipawn victimScore = Heuristic::Material::PIECES_VALUE[board.at<chess::PieceType>(move.to())];
             Centipawn attackerScore = Heuristic::Material::PIECES_VALUE[board.at<chess::PieceType>(move.from())];
-            return victimScore * 100 - attackerScore;
+            return victimScore * 10 - attackerScore;
         }
 
         void MakeMove(chess::Board& board, chess::Move& move)
@@ -319,13 +352,22 @@ namespace LiquorChess
             std::fill(&killers[0][0], &killers[0][0] + MAX_PLY * 2, chess::Move{});
         }
 
+        void UpdateHistory(chess::Color color, chess::Square from, chess::Square to, Centipawn bonus)
+        {
+            bonus = std::clamp(bonus, MIN_HISTORY, MAX_HISTORY);
+            history[static_cast<size_t>(color.internal())][from.index()][to.index()] +=
+                bonus - history[static_cast<size_t>(color.internal())][from.index()][to.index()] * std::abs(bonus) / MAX_HISTORY;
+        }
+
     private:
         EvalT evaluator;
         size_t nodeCount = 0;
         uint32_t maxPly = 0;
 
         TranspositionTable tt{};
+
         chess::Move killers[MAX_PLY][2]{};
+        Centipawn history[2][static_cast<size_t>(chess::Square::NO_SQ)][static_cast<size_t>(chess::Square::NO_SQ)] = {};
     };
 
 }

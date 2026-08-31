@@ -20,8 +20,9 @@ namespace LiquorChess::Heuristic::Material
         IDEAL_KING
     };
 
-    constexpr Centipawn BISHOP_PAIR_VALUE = 40;
-    constexpr Centipawn REDUNDANCY_VALUE = -20;
+    constexpr Centipawn BISHOP_PAIR_VALUE   = 40;
+    constexpr Centipawn REDUNDANCY_VALUE    = -20;
+    constexpr Centipawn NO_PAWN_VALUE       = -100;
 
 
     inline Centipawn Score(const chess::Board& board, chess::Color color)
@@ -49,6 +50,7 @@ namespace LiquorChess::Heuristic::Material
         score += bishopCount >= 2 ? BISHOP_PAIR_VALUE : 0;
         score += REDUNDANCY_VALUE * std::max(0, knightCount - 1);
         score += REDUNDANCY_VALUE * std::max(0, rookCount - 1);
+        score += pawnCount > 0 ? 0 : NO_PAWN_VALUE;
 
         return score;
     }
