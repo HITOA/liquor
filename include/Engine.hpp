@@ -26,11 +26,11 @@ namespace LiquorChess {
 
         [[nodiscard]] inline bool IsRunning() const
         {
-            return searchThread.joinable();
+            return searching.load(std::memory_order_relaxed);
         }
 
     protected:
-        void Search(std::stop_token stop) const;
+        void Search(std::stop_token stop);
         void OnSearchInfo(std::unique_ptr<SearchInfo> info) const override;
 
     private:
@@ -39,6 +39,7 @@ namespace LiquorChess {
         chess::Board board;
 
         std::jthread searchThread;
+        std::atomic_bool searching;
         std::unique_ptr<SearchEngine> searchEngine;
     };
 

@@ -10,12 +10,10 @@
 namespace LiquorChess::Heuristic::PawnStructure
 {
 
-    constexpr Centipawn CONNECTED_PAWN_VALUE = 25;
-    constexpr Centipawn ISOLATED_PAWN_VALUE = -25;
+    constexpr Centipawn CONNECTED_PAWN_VALUE = 7;
+    constexpr Centipawn ISOLATED_PAWN_VALUE = -10;
 
-    inline chess::Bitboard NorthEastOne(chess::Bitboard bb) { return (bb << 9) & ~chess::File::FILE_A }
-
-    inline Centipawn Score(chess::Board& board, chess::Color& color)
+    inline Centipawn Score(const chess::Board& board, chess::Color color)
     {
         Centipawn score = 0;
 
@@ -29,18 +27,17 @@ namespace LiquorChess::Heuristic::PawnStructure
         {
             defendedFromWest = pawns & chess::attacks::pawnRightAttacks<chess::Color::WHITE>(pawns);
             defendedFromEast = pawns & chess::attacks::pawnLeftAttacks<chess::Color::WHITE>(pawns);
-            defender = chess::attacks::shift<chess::Direction::NORTH_EAST>(defendedFromWest) |
-                        chess::attacks::shift<chess::Direction::NORTH_WEST>(defendedFromEast);
+            defender = chess::attacks::shift<chess::Direction::SOUTH_WEST>(defendedFromWest) |
+                        chess::attacks::shift<chess::Direction::SOUTH_EAST>(defendedFromEast);
         } else
         {
             defendedFromWest = pawns & chess::attacks::pawnRightAttacks<chess::Color::BLACK>(pawns);
             defendedFromEast = pawns & chess::attacks::pawnLeftAttacks<chess::Color::BLACK>(pawns);
-            defender = chess::attacks::shift<chess::Direction::SOUTH_EAST>(defendedFromWest) |
-                        chess::attacks::shift<chess::Direction::SOUTH_WEST>(defendedFromEast);
+            defender = chess::attacks::shift<chess::Direction::NORTH_WEST>(defendedFromWest) |
+                        chess::attacks::shift<chess::Direction::NORTH_EAST>(defendedFromEast);
         }
 
-        score += (defendedFromWest.count() + defendedFromEast.count()) * CONNECTED_PAWN_VALUE;
-        score += (pawns & ~(defendedFromWest | defendedFromEast | defender)).count() * ISOLATED_PAWN_VALUE;
+        score += (defendedFromWest | defendedFromEast | defender).count() * CONNECTED_PAWN_VALUE;
 
         return score;
     }

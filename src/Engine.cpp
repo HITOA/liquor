@@ -10,7 +10,7 @@
 
 
 LiquorChess::Engine::Engine(Interface* interface, std::unique_ptr<SearchEngine> searchEngine)
-    : interface{ interface }, searchThread{}, searchEngine{ std::move(searchEngine) }
+    : interface{ interface }, searchThread{}, searching{ false }, searchEngine{ std::move(searchEngine) }
 {
 }
 
@@ -32,6 +32,7 @@ void LiquorChess::Engine::Run()
 {
     assert(IsRunning() == false);
 
+    searching.store(true);
     searchThread = std::jthread{ [this](std::stop_token stop){ Search(stop); } };
 }
 
@@ -43,7 +44,7 @@ void LiquorChess::Engine::Stop()
     searchThread.join();
 }
 
-void LiquorChess::Engine::Search(std::stop_token stop) const
+void LiquorChess::Engine::Search(std::stop_token stop)
 {
     SearchParameters parameters{
         board,
@@ -54,6 +55,7 @@ void LiquorChess::Engine::Search(std::stop_token stop) const
 
     std::string move = chess::uci::moveToUci(bestMove);
     interface->PushToGUI<BestMoveEvent>(move);
+    searching.store(false);
 }
 
 void LiquorChess::Engine::OnSearchInfo(std::unique_ptr<SearchInfo> info) const

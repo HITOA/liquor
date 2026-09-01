@@ -142,7 +142,7 @@ namespace LiquorChess
                 }
             }
 
-            chess::Movelist legalMoves;
+            chess::Movelist legalMoves{};
             chess::movegen::legalmoves(legalMoves, board);
 
             if (legalMoves.empty() && board.inCheck())
@@ -210,7 +210,7 @@ namespace LiquorChess
             MaxPly(ply);
 
             if (ply >= MAX_PLY)
-                return evaluator.Evaluate(board);
+                return Evaluate(board);
 
             Centipawn originalAlpha = alpha;
             Centipawn originalBeta = beta;
@@ -229,7 +229,7 @@ namespace LiquorChess
             Centipawn bestScore = -CENTIPAWN_INFINITE;
             if (!board.inCheck())
             {
-                bestScore = evaluator.Evaluate(board);
+                bestScore = Evaluate(board);
                 if (bestScore >= beta)
                     return bestScore;
                 alpha = std::max(alpha, bestScore);
@@ -337,6 +337,16 @@ namespace LiquorChess
             if constexpr (IncrementalEvaluator<EvalT>)
                 evaluator.UnmakeMove(board, move);
             board.unmakeMove(move);
+        }
+
+        Centipawn Evaluate(chess::Board& board)
+        {
+            const Centipawn score = evaluator.Evaluate(board);
+#ifndef NDEBUG
+            evaluator.Update(board);
+            assert(score == evaluator.Evaluate(board));
+#endif
+            return score;
         }
 
         void ClearNodeCount() { nodeCount = 0; }

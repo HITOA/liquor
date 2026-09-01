@@ -123,6 +123,6 @@ void LiquorChess::Interface::ReadyEngine()
 {
     if (engine == nullptr)
     {
-        engine = std::make_unique<Engine>(this, std::make_unique<AlphaBetaSearch<MinimalistHeuristic>>());
+        engine = std::make_unique<Engine>(this, std::make_unique<AlphaBetaSearch<NNUEEvaluator>>());
     }
 }
