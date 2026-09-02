@@ -42,6 +42,9 @@ void LiquorChess::Interface::Run()
             DeallocateEvent(event);
             *output << serializeEvent << std::endl;
         }
+
+        if (engine != nullptr)
+            engine->Update();
     }
 
     listeningThread.join();
@@ -105,9 +108,15 @@ void LiquorChess::Interface::HandleEvent(Event* event)
         }
         return;
     }
-    if (event->Is<SearchEvent>())
+    if (const auto* e = event->Is<SearchEvent>())
     {
         assert(engine != nullptr);
+        if (e->Infinite())
+            engine->SetNoLimit();
+        else if (e->Depth() > 0)
+            engine->SetDepthLimit(e->Depth());
+        else
+            engine->SetTimeLimit(e->WhiteTime(), e->BlackTime(), e->WhiteIncrement(), e->BlackIncrement());
         engine->Run();
         return;
     }
@@ -115,6 +124,12 @@ void LiquorChess::Interface::HandleEvent(Event* event)
     {
         assert(engine != nullptr);
         engine->Stop();
+        return;
+    }
+    if (event->Is<NewGameEvent>())
+    {
+        assert(engine != nullptr);
+        engine->Clear();
         return;
     }
 }

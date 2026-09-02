@@ -19,6 +19,7 @@ namespace LiquorChess
             chess::Move bestMove{};
             Centipawn score = -CENTIPAWN_INFINITE;
             uint32_t depth = 0;
+            uint8_t generation = 0;
             enum class Flag
             {
                 EXACT,
@@ -36,10 +37,14 @@ namespace LiquorChess
 
         void Resize(size_t size);
 
+        void NewGeneration();
+        void Clear();
+
         static Centipawn ScoreToTT(Centipawn score, uint32_t ply);
         static Centipawn ScoreFromTT(Centipawn score, uint32_t ply);
 
     private:
+        uint8_t generation = 0;
         std::vector<TTEntry> entries;
     };
 

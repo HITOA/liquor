@@ -1,8 +1,6 @@
 #include <Engine.hpp>
 
 #include <Interface.hpp>
-#include <../include/Heuristic/PST.hpp>
-#include <../include/Heuristic/Material.hpp>
 
 #include <chrono>
 
@@ -28,9 +26,63 @@ void LiquorChess::Engine::MakeMove(const std::string& move)
     board.makeMove(chess::uci::uciToMove(board, move));
 }
 
+
+void LiquorChess::Engine::SetTimeLimit(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc)
+{
+    if (board.sideToMove() == chess::Color::WHITE)
+    {
+        timeLimit = wtime / 20 + winc / 2;
+    } else
+    {
+        timeLimit = btime / 20 + binc / 2;
+    }
+    depthLimit = 0;
+    searchMode = SearchMode::TIME;
+}
+
+void LiquorChess::Engine::SetDepthLimit(uint32_t depth)
+{
+    depthLimit = depth;
+    timeLimit = 0;
+    searchMode = SearchMode::DEPTH;
+}
+
+void LiquorChess::Engine::SetNoLimit()
+{
+    depthLimit = 0;
+    timeLimit = 0;
+    searchMode = SearchMode::INFINITE;
+}
+
+void LiquorChess::Engine::Update()
+{
+    if (!IsRunning())
+        return;
+
+    switch (searchMode)
+    {
+    case SearchMode::INFINITE:
+        break;
+    case SearchMode::DEPTH:
+        if (lastReachedDepth >= depthLimit)
+                searchThread.request_stop();
+        break;
+    case SearchMode::TIME:
+        {
+            std::chrono::system_clock::time_point current = std::chrono::system_clock::now();
+            std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(current - searchBeganAt);
+            if (duration.count() >= timeLimit)
+                searchThread.request_stop();
+            break;
+        }
+    }
+}
+
 void LiquorChess::Engine::Run()
 {
     assert(IsRunning() == false);
+
+    searchBeganAt = std::chrono::system_clock::now();
 
     searching.store(true);
     searchThread = std::jthread{ [this](std::stop_token stop){ Search(stop); } };
@@ -44,21 +96,29 @@ void LiquorChess::Engine::Stop()
     searchThread.join();
 }
 
-void LiquorChess::Engine::Search(std::stop_token stop)
+void LiquorChess::Engine::Clear()
 {
-    SearchParameters parameters{
+    assert(IsRunning() == false);
+
+    searchEngine->Clear();
+}
+
+void LiquorChess::Engine::Search(const std::stop_token& stop)
+{
+    const SearchParameters parameters{
         board,
-        std::chrono::milliseconds{ 7000 },
+        timeLimit,
+        depthLimit,
         this
     };
-    chess::Move bestMove = searchEngine->Search(stop, parameters);
+    const chess::Move bestMove = searchEngine->Search(stop, parameters);
 
     std::string move = chess::uci::moveToUci(bestMove);
     interface->PushToGUI<BestMoveEvent>(move);
     searching.store(false);
 }
 
-void LiquorChess::Engine::OnSearchInfo(std::unique_ptr<SearchInfo> info) const
+void LiquorChess::Engine::OnSearchInfo(std::unique_ptr<SearchInfo> info)
 {
     switch (info->hash)
     {
@@ -75,7 +135,9 @@ void LiquorChess::Engine::OnSearchInfo(std::unique_ptr<SearchInfo> info) const
                 break;
             }
         default:
-            interface->PushToGUI<InfoEvent>(0, 0, info->elapsed.count(), 0, info->score);
+            interface->PushToGUI<InfoEvent>(info->depth, 0, info->elapsed.count(), 0, info->score);
             break;
     }
+
+    lastReachedDepth = info->depth;
 }

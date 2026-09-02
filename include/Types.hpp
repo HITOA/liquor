@@ -36,7 +36,8 @@ namespace LiquorChess
     constexpr Centipawn MAX_HISTORY = 97;
     constexpr Centipawn MIN_HISTORY = -MAX_HISTORY;
 
-    constexpr size_t MAX_PV_LENGTH = 32;
+    constexpr size_t MAX_PV_LENGTH = 64;
     constexpr size_t MAX_EXTENSION = 16;
+    constexpr size_t MAX_DEPTH     = 128;
 
 }

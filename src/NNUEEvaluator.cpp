@@ -5,7 +5,7 @@
 
 LiquorChess::NNUEEvaluator::NNUEEvaluator()
 {
-    MantaRay::MarlinflowStream stream{"net0003.json"};
+    MantaRay::MarlinflowStream stream{"net0004-fixed.json"};
     network = NeuralNetwork{stream};
 }
 
@@ -77,7 +77,7 @@ void LiquorChess::NNUEEvaluator::MakeMove(const chess::Board& board, const chess
             if (board.isCapture(move))
             {
                 network.EfficientlyUpdateAccumulator<MantaRay::AccumulatorOperation::Deactivate>(
-                        board.at<chess::PieceType>(move.to()), board.sideToMove(), move.to().index());
+                        board.at<chess::PieceType>(move.to()), ~board.sideToMove(), move.to().index());
             }
             network.EfficientlyUpdateAccumulator<MantaRay::AccumulatorOperation::Deactivate>(
                     board.at<chess::PieceType>(move.from()), board.sideToMove(), move.from().index());

@@ -20,6 +20,7 @@ namespace LiquorChess
         Event* DeserializeEvent(const std::string& event) override;
 
         Event* DeserializePositionEvent(const std::string& event);
+        Event* DeserializeGoEvent(const std::string& event);
     };
 
 }

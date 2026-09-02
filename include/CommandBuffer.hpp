@@ -51,12 +51,12 @@ namespace LiquorChess
         }
 
     private:
-        T* buffer;
+        T* buffer = nullptr;
 
-        std::atomic_size_t writeIndex;
-        size_t readIndex;
+        std::atomic_size_t writeIndex{ 0 };
+        size_t readIndex{ 0 };
 
-        std::atomic_bool ready[N];
+        std::atomic_bool ready[N]{ false };
     };
 
 }

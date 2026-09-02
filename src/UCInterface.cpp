@@ -53,9 +53,11 @@ LiquorChess::Event* LiquorChess::UCInterface::DeserializeEvent(const std::string
         case CTFNV1A("position"):
             return DeserializePositionEvent(event);
         case CTFNV1A("go"):
-            return AllocateEvent<SearchEvent>();
+            return DeserializeGoEvent(event);
         case CTFNV1A("stop"):
             return AllocateEvent<StopEvent>();
+        case CTFNV1A("ucinewgame"):
+            return AllocateEvent<NewGameEvent>();
         default:
             return nullptr;
     }
@@ -101,4 +103,55 @@ LiquorChess::Event* LiquorChess::UCInterface::DeserializePositionEvent(const std
     MovesEvent* movesEvent = AllocateEvent<MovesEvent>(moves);
 
     return AllocateCompoundEvent({ positionEvent, movesEvent });
+}
+
+LiquorChess::Event* LiquorChess::UCInterface::DeserializeGoEvent(const std::string& event)
+{
+    uint32_t wtime = 0;
+    uint32_t btime = 0;
+    uint32_t winc = 0;
+    uint32_t binc = 0;
+    uint32_t depth = 0;
+    bool infinite = false;
+
+    std::istringstream iss(event);
+    std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss},
+                                      std::istream_iterator<std::string>{} };
+
+    size_t i = 0;
+
+    if (tokens.empty())
+        return nullptr;
+
+    if (tokens[i++] != "go")
+        return nullptr;
+
+    for (;i < tokens.size(); ++i)
+    {
+        switch (fnv1a(tokens[i].c_str()))
+        {
+        case CTFNV1A("wtime"):
+            wtime = std::stoi(tokens[++i]);
+            break;
+        case CTFNV1A("btime"):
+            btime = std::stoi(tokens[++i]);
+            break;
+        case CTFNV1A("winc"):
+            winc = std::stoi(tokens[++i]);
+            break;
+        case CTFNV1A("binc"):
+            binc = std::stoi(tokens[++i]);
+            break;
+        case CTFNV1A("depth"):
+            depth = std::stoi(tokens[++i]);;
+            break;
+        case CTFNV1A("infinite"):
+            infinite = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    return AllocateEvent<SearchEvent>(wtime, btime, winc, binc, depth, infinite);
 }

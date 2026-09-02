@@ -129,8 +129,24 @@ namespace LiquorChess
     class SearchEvent : public Event
     {
     public:
-        SearchEvent() = default;
+        SearchEvent(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc, uint32_t depth, bool infinite)
+            : wtime{ wtime }, btime{ btime }, winc{ winc }, binc{ binc }, depth{ depth }, infinite{ infinite } {}
         ~SearchEvent() override = default;
+
+        [[nodiscard]] uint32_t WhiteTime() const { return wtime; }
+        [[nodiscard]] uint32_t BlackTime() const { return btime; }
+        [[nodiscard]] uint32_t WhiteIncrement() const { return winc; }
+        [[nodiscard]] uint32_t BlackIncrement() const { return binc; }
+        [[nodiscard]] uint32_t Depth() const { return depth; }
+        [[nodiscard]] bool Infinite() const { return infinite; }
+
+    private:
+        uint32_t wtime = 0;
+        uint32_t btime = 0;
+        uint32_t winc = 0;
+        uint32_t binc = 0;
+        uint32_t depth = 0;
+        bool infinite = false;
     };
 
     /**
@@ -141,6 +157,16 @@ namespace LiquorChess
     public:
         StopEvent() = default;
         ~StopEvent() override = default;
+    };
+
+    /**
+     * Signal the engine a new game is starting and should update its state
+     */
+    class NewGameEvent : public Event
+    {
+    public:
+        NewGameEvent() = default;
+        ~NewGameEvent() override = default;
     };
 
     // Engine -> GUI Events

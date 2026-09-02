@@ -31,6 +31,8 @@ namespace LiquorChess
         { evaluator.Update(board) } -> std::same_as<void>;
         { evaluator.MakeMove(board, move) } -> std::same_as<void>;
         { evaluator.UnmakeMove(board, move) } -> std::same_as<void>;
+        { evaluator.MakeNullMove(board) } -> std::same_as<void>;
+        { evaluator.UnmakeNullMove(board) } -> std::same_as<void>;
     };
 
     class MinimalistHeuristic
@@ -72,7 +74,7 @@ namespace LiquorChess
     class NNUEEvaluator
     {
         using Activation = MantaRay::ClippedReLU<int16_t, 0, 255>;
-        using NeuralNetwork = MantaRay::PerspectiveNetwork<int16_t, int32_t, Activation, 768, 256, 1, 512, 400, 255, 64>;
+        using NeuralNetwork = MantaRay::PerspectiveNetwork<int16_t, int32_t, Activation, 768, 512, 1, 512, 400, 255, 64>;
 
     public:
         NNUEEvaluator();
@@ -82,6 +84,8 @@ namespace LiquorChess
         void Update(const chess::Board& board);
         void MakeMove(const chess::Board& board, const chess::Move& move);
         void UnmakeMove(const chess::Board& board, const chess::Move& move);
+        static void MakeNullMove(const chess::Board& board) {}
+        static void UnmakeNullMove(const chess::Board& board) {}
 
     private:
         NeuralNetwork network;

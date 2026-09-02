@@ -12,6 +12,7 @@ LiquorChess::TranspositionTable::TTEntry* LiquorChess::TranspositionTable::Probe
     TTEntry* entry = &entries[index];
     if (entry->key != key)
         return nullptr;
+    entry->generation = generation;
     return entry;
 }
 
@@ -19,7 +20,7 @@ void LiquorChess::TranspositionTable::Store(uint64_t key, chess::Move bestMove, 
 {
     uint64_t index = key & (entries.size() - 1);
     TTEntry* entry = &entries[index];
-    if (entry->key == 0 || entry->depth < depth)
+    if (entry->key == 0 || entry->generation != generation || entry->depth < depth)
     {
         entry->key = key;
         entry->depth = depth;
@@ -33,8 +34,19 @@ void LiquorChess::TranspositionTable::Resize(size_t size)
 {
     size = std::pow(2, ceil(log(size - 1) / log(2)));
     entries.resize(size);
+    Clear();
 }
 
+void LiquorChess::TranspositionTable::NewGeneration()
+{
+    generation += 1;
+}
+
+void LiquorChess::TranspositionTable::Clear()
+{
+    std::fill(entries.begin(), entries.end(), TTEntry{});
+    generation = 0;
+}
 
 LiquorChess::Centipawn LiquorChess::TranspositionTable::ScoreToTT(Centipawn score, uint32_t ply)
 {

@@ -10,9 +10,13 @@ namespace LiquorChess {
     class Interface;
 
     class Engine : public SearchObserver {
-    private:
-        constexpr static int32_t MAX_PLY = 32;
-        constexpr static int32_t KILLER_COUNT = 3;
+    public:
+        enum class SearchMode
+        {
+            INFINITE,
+            DEPTH,
+            TIME
+        };
 
     public:
         explicit Engine(Interface* interface, std::unique_ptr<SearchEngine> searchEngine);
@@ -21,8 +25,14 @@ namespace LiquorChess {
         void SetBoardInternal(const std::string& fen);
         void MakeMove(const std::string& move);
 
+        void SetTimeLimit(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc);
+        void SetDepthLimit(uint32_t depth);
+        void SetNoLimit();
+
+        void Update();
         void Run();
         void Stop();
+        void Clear();
 
         [[nodiscard]] inline bool IsRunning() const
         {
@@ -30,17 +40,24 @@ namespace LiquorChess {
         }
 
     protected:
-        void Search(std::stop_token stop);
-        void OnSearchInfo(std::unique_ptr<SearchInfo> info) const override;
+        void Search(const std::stop_token& stop);
+        void OnSearchInfo(std::unique_ptr<SearchInfo> info) override;
 
     private:
-        Interface* interface;
+        Interface* interface = nullptr;
 
-        chess::Board board;
+        chess::Board board{};
 
-        std::jthread searchThread;
-        std::atomic_bool searching;
-        std::unique_ptr<SearchEngine> searchEngine;
+        SearchMode searchMode = SearchMode::INFINITE;
+        uint32_t timeLimit = 0;
+        uint32_t depthLimit = 0;
+
+        uint32_t lastReachedDepth{};
+        std::chrono::system_clock::time_point searchBeganAt{};
+
+        std::jthread searchThread{};
+        std::atomic_bool searching{ false };
+        std::unique_ptr<SearchEngine> searchEngine = nullptr;
     };
 
 }

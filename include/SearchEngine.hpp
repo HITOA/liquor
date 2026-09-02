@@ -16,6 +16,7 @@ namespace LiquorChess
         uint32_t hash;
         std::chrono::milliseconds elapsed;
         Centipawn score;
+        uint32_t depth;
     };
 
     class SearchObserver
@@ -25,7 +26,7 @@ namespace LiquorChess
         virtual ~SearchObserver() = default;
 
     protected:
-        virtual void OnSearchInfo(std::unique_ptr<SearchInfo> info) const = 0;
+        virtual void OnSearchInfo(std::unique_ptr<SearchInfo> info) = 0;
 
     private:
         friend class SearchEngine;
@@ -34,11 +35,12 @@ namespace LiquorChess
     struct SearchParameters
     {
         const chess::Board& board;
-        std::chrono::milliseconds limit;
-        const SearchObserver* observer;
+        uint32_t timeLimit;
+        uint32_t depthLimit;
+        SearchObserver* observer;
 
-        SearchParameters(const chess::Board& board, std::chrono::milliseconds limit, const SearchObserver* observer) :
-            board{ board }, limit{ limit }, observer{ observer } {}
+        SearchParameters(const chess::Board& board, uint32_t timeLimit, uint32_t depthLimit, SearchObserver* observer) :
+            board{ board }, timeLimit{ timeLimit }, depthLimit{ depthLimit }, observer{ observer } {}
     };
 
     class SearchEngine
@@ -47,10 +49,11 @@ namespace LiquorChess
         SearchEngine() = default;
         virtual ~SearchEngine() = default;
 
-        virtual chess::Move Search(std::stop_token stop, const SearchParameters& parameters) = 0;
+        virtual chess::Move Search(const std::stop_token& stop, const SearchParameters& parameters) = 0;
+        virtual void Clear() = 0;
 
     protected:
-        void PushSearchInfo(const SearchObserver* observer, std::unique_ptr<SearchInfo> info)
+        static void PushSearchInfo(SearchObserver* observer, std::unique_ptr<SearchInfo> info)
         {
             observer->OnSearchInfo(std::move(info));
         }

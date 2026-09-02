@@ -65,6 +65,8 @@ add_executable(LiquorChess
         include/Heuristic/PawnStructure.hpp
         include/Heuristic/Mobility.hpp
         src/NNUEEvaluator.cpp
+        include/PVTable.hpp
+        src/PVTable.cpp
 )
 
 target_include_directories(LiquorChess PRIVATE "include")
