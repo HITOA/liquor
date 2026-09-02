@@ -18,6 +18,7 @@ LiquorChess::TranspositionTable::TTEntry* LiquorChess::TranspositionTable::Probe
 
 void LiquorChess::TranspositionTable::Store(uint64_t key, chess::Move bestMove, Centipawn score, uint32_t depth, TTEntry::Flag flag)
 {
+    assert(IsValid(score));
     uint64_t index = key & (entries.size() - 1);
     TTEntry* entry = &entries[index];
     if (entry->key == 0 || entry->generation != generation || entry->depth < depth)

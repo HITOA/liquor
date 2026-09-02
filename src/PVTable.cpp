@@ -34,5 +34,5 @@ chess::Move LiquorChess::PVTable::Get(uint32_t ply, uint32_t idx) const
 
 uint32_t LiquorChess::PVTable::Size(uint32_t ply) const
 {
-    return pv[ply][0].score();
+    return pv[ply][ply].score();
 }

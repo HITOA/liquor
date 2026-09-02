@@ -120,9 +120,9 @@ namespace LiquorChess
             pvTable.Enter(ply);
 
             if (stop.stop_requested())
-                return -CENTIPAWN_INFINITE;
+                return CENTIPAWN_NONE;
 
-            if (ply > 0 && board.isRepetition(1) || board.isHalfMoveDraw())
+            if ((ply > 0 && board.isRepetition(1)) || board.isHalfMoveDraw())
                 return CENTIPAWN_DRAW;
 
             if (board.inCheck() && extension < MAX_EXTENSION)
@@ -139,25 +139,29 @@ namespace LiquorChess
 
             bool isPv = beta - alpha > 1;
 
-            Centipawn staticEval = evaluator.Evaluate(board);
-
-            if (!board.inCheck() && !isPv && limit <= 6 && std::abs(beta) < CENTIPAWN_MATE_IN_MAX_PLY)
+            if (!board.inCheck() && !isPv)
             {
-                Centipawn margin = static_cast<Centipawn>(150 * limit);
-                if (staticEval >= beta + margin)
-                    return staticEval;
-            }
+                Centipawn staticEval = evaluator.Evaluate(board);
 
-            if (!board.inCheck() && !isPv && limit >= 3 && staticEval >= beta
-                && board.hasNonPawnMaterial(board.sideToMove()) && !isNull)
-            {
-                const uint32_t R = 2 + limit / 6;
-                MakeNullMove(board);
-                Centipawn score = -Negamax(stop, board, limit - 1 - R, ply + 1, extension, -beta, -beta + 1, true);
-                UnmakeNullMove(board);
+                if (limit <= 6 && std::abs(beta) < CENTIPAWN_MATE_IN_MAX_PLY)
+                {
+                    Centipawn margin = static_cast<Centipawn>(150 * limit);
+                    if (staticEval >= beta + margin)
+                        return staticEval;
+                }
 
-                if (score >= beta)
-                    return std::abs(score) >= CENTIPAWN_MATE_IN_MAX_PLY ? beta : score;
+                if (limit >= 3 && staticEval >= beta && board.hasNonPawnMaterial(board.sideToMove()) && !isNull)
+                {
+                    const uint32_t R = 2 + limit / 6;
+                    MakeNullMove(board);
+                    Centipawn score = -Negamax(stop, board, limit - 1 - R, ply + 1, extension, -beta, -beta + 1, true);
+                    UnmakeNullMove(board);
+                    if (!IsValid(score))
+                        return CENTIPAWN_NONE;
+
+                    if (score >= beta)
+                        return std::abs(score) >= CENTIPAWN_MATE_IN_MAX_PLY ? beta : score;
+                }
             }
 
             chess::Move ttMove{};
@@ -207,6 +211,9 @@ namespace LiquorChess
 
                 UnmakeMove(board, move);
 
+                if (!IsValid(score))
+                    return CENTIPAWN_NONE;
+
                 if (score > bestScore)
                 {
                     bestMove = move;
@@ -248,7 +255,7 @@ namespace LiquorChess
             MaxPly(ply);
 
             if (stop.stop_requested())
-                return -CENTIPAWN_INFINITE;
+                return CENTIPAWN_NONE;
 
             if (ply >= MAX_PLY)
                 return Evaluate(board);
@@ -301,6 +308,9 @@ namespace LiquorChess
                     score = -Quiescence(stop, board, ply + 1, -beta, -alpha);
                 UnmakeMove(board, move);
 
+                if (!IsValid(score))
+                    return CENTIPAWN_NONE;
+
                 if (score > bestScore)
                 {
                     bestMove = move;
@@ -349,7 +359,7 @@ namespace LiquorChess
                 return 0;
             if (move == killers[ply][0] || move == killers[ply][1])
                 return 0;
-            return static_cast<uint32_t>(0.77 + std::log(depth) * std::log(moveIndex) / 2.36);
+            return std::clamp<uint32_t>(static_cast<uint32_t>(0.77 + std::log(depth) * std::log(moveIndex) / 2.36), 0, depth - 1);
         }
 
         void ScoreMoveList(const chess::Board& board, chess::Movelist& moves, const chess::Move& ttMove, const uint32_t ply) const
@@ -406,7 +416,7 @@ namespace LiquorChess
         {
             const Centipawn score = evaluator.Evaluate(board);
 #ifndef NDEBUG
-            if (constexpr IncrementalEvaluator<EvalT>)
+            if constexpr (IncrementalEvaluator<EvalT>)
             {
                 evaluator.Update(board);
                 assert(score == evaluator.Evaluate(board));
