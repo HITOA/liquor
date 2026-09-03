@@ -112,6 +112,7 @@ LiquorChess::Event* LiquorChess::UCInterface::DeserializeGoEvent(const std::stri
     uint32_t winc = 0;
     uint32_t binc = 0;
     uint32_t depth = 0;
+    uint32_t movetime = 0;
     bool infinite = false;
 
     std::istringstream iss(event);
@@ -145,6 +146,9 @@ LiquorChess::Event* LiquorChess::UCInterface::DeserializeGoEvent(const std::stri
         case CTFNV1A("depth"):
             depth = std::stoi(tokens[++i]);;
             break;
+        case CTFNV1A("movetime"):
+            movetime = std::stoi(tokens[++i]);
+            break;
         case CTFNV1A("infinite"):
             infinite = true;
             break;
@@ -153,5 +157,5 @@ LiquorChess::Event* LiquorChess::UCInterface::DeserializeGoEvent(const std::stri
         }
     }
 
-    return AllocateEvent<SearchEvent>(wtime, btime, winc, binc, depth, infinite);
+    return AllocateEvent<SearchEvent>(wtime, btime, winc, binc, depth, movetime, infinite);
 }

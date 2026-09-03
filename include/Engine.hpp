@@ -15,7 +15,8 @@ namespace LiquorChess {
         {
             INFINITE,
             DEPTH,
-            TIME
+            TIME,
+            NONE
         };
 
     public:
@@ -27,6 +28,7 @@ namespace LiquorChess {
 
         void SetTimeLimit(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc);
         void SetDepthLimit(uint32_t depth);
+        void SetMoveTime(uint32_t movetime);
         void SetNoLimit();
 
         void Update();
@@ -48,7 +50,7 @@ namespace LiquorChess {
 
         chess::Board board{};
 
-        SearchMode searchMode = SearchMode::INFINITE;
+        SearchMode searchMode = SearchMode::NONE;
         uint32_t timeLimit = 0;
         uint32_t depthLimit = 0;
 

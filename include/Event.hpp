@@ -129,8 +129,8 @@ namespace LiquorChess
     class SearchEvent : public Event
     {
     public:
-        SearchEvent(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc, uint32_t depth, bool infinite)
-            : wtime{ wtime }, btime{ btime }, winc{ winc }, binc{ binc }, depth{ depth }, infinite{ infinite } {}
+        SearchEvent(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc, uint32_t depth, uint32_t movetime, bool infinite)
+            : wtime{ wtime }, btime{ btime }, winc{ winc }, binc{ binc }, depth{ depth }, movetime{ movetime }, infinite{ infinite } {}
         ~SearchEvent() override = default;
 
         [[nodiscard]] uint32_t WhiteTime() const { return wtime; }
@@ -138,6 +138,7 @@ namespace LiquorChess
         [[nodiscard]] uint32_t WhiteIncrement() const { return winc; }
         [[nodiscard]] uint32_t BlackIncrement() const { return binc; }
         [[nodiscard]] uint32_t Depth() const { return depth; }
+        [[nodiscard]] uint32_t MoveTime() const { return movetime; }
         [[nodiscard]] bool Infinite() const { return infinite; }
 
     private:
@@ -146,6 +147,7 @@ namespace LiquorChess
         uint32_t winc = 0;
         uint32_t binc = 0;
         uint32_t depth = 0;
+        uint32_t movetime = 0;
         bool infinite = false;
     };
 

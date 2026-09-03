@@ -34,12 +34,12 @@ namespace LiquorChess
 
     struct SearchParameters
     {
-        const chess::Board& board;
+        chess::Board board;
         uint32_t timeLimit;
         uint32_t depthLimit;
         SearchObserver* observer;
 
-        SearchParameters(const chess::Board& board, uint32_t timeLimit, uint32_t depthLimit, SearchObserver* observer) :
+        SearchParameters(chess::Board board, uint32_t timeLimit, uint32_t depthLimit, SearchObserver* observer) :
             board{ board }, timeLimit{ timeLimit }, depthLimit{ depthLimit }, observer{ observer } {}
     };
 

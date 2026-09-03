@@ -26,7 +26,6 @@ void LiquorChess::Engine::MakeMove(const std::string& move)
     board.makeMove(chess::uci::uciToMove(board, move));
 }
 
-
 void LiquorChess::Engine::SetTimeLimit(uint32_t wtime, uint32_t btime, uint32_t winc, uint32_t binc)
 {
     if (board.sideToMove() == chess::Color::WHITE)
@@ -45,6 +44,13 @@ void LiquorChess::Engine::SetDepthLimit(uint32_t depth)
     depthLimit = depth;
     timeLimit = 0;
     searchMode = SearchMode::DEPTH;
+}
+
+void LiquorChess::Engine::SetMoveTime(uint32_t movetime)
+{
+    depthLimit = 0;
+    timeLimit = movetime;
+    searchMode = SearchMode::TIME;
 }
 
 void LiquorChess::Engine::SetNoLimit()
@@ -90,8 +96,7 @@ void LiquorChess::Engine::Run()
 
 void LiquorChess::Engine::Stop()
 {
-    assert(IsRunning() == true);
-
+    if (!searchThread.joinable()) return;
     searchThread.request_stop();
     searchThread.join();
 }
@@ -107,7 +112,7 @@ void LiquorChess::Engine::Search(const std::stop_token& stop)
 {
     const SearchParameters parameters{
         board,
-        timeLimit,
+        searchMode == SearchMode::NONE ? 5000 : timeLimit,
         depthLimit,
         this
     };

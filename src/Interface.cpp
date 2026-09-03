@@ -113,9 +113,11 @@ void LiquorChess::Interface::HandleEvent(Event* event)
         assert(engine != nullptr);
         if (e->Infinite())
             engine->SetNoLimit();
-        else if (e->Depth() > 0)
+        else if (e->Depth() != 0)
             engine->SetDepthLimit(e->Depth());
-        else
+        else if (e->MoveTime() != 0)
+            engine->SetMoveTime(e->MoveTime());
+        else if (e->WhiteIncrement() != 0)
             engine->SetTimeLimit(e->WhiteTime(), e->BlackTime(), e->WhiteIncrement(), e->BlackIncrement());
         engine->Run();
         return;
@@ -128,7 +130,7 @@ void LiquorChess::Interface::HandleEvent(Event* event)
     }
     if (event->Is<NewGameEvent>())
     {
-        assert(engine != nullptr);
+        ReadyEngine();
         engine->Clear();
         return;
     }

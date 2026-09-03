@@ -71,7 +71,7 @@ namespace LiquorChess
                     info->seldepth = GetMaxPly();
                     info->nodes = GetNodeCount();
                     info->nps = GetNodeCount() * 1000 / duration.count();
-                    UpdatePrincipalVariation(board, info->pv);
+                    UpdatePrincipalVariation(info->pv);
                     PushSearchInfo(parameters.observer, std::move(info));
                 }
 
@@ -93,12 +93,13 @@ namespace LiquorChess
             tt.Clear();
             pvTable.Clear();
             ClearKillers();
+            ClearHistory();
             ClearMaxPly();
             ClearNodeCount();
         }
 
     private:
-        void UpdatePrincipalVariation(chess::Board board, std::vector<chess::Move>& pv)
+        void UpdatePrincipalVariation(std::vector<chess::Move>& pv) const
         {
             pv.clear();
             for (uint32_t i = 0; i < pvTable.Size(0); ++i)
@@ -443,6 +444,10 @@ namespace LiquorChess
             bonus = std::clamp(bonus, MIN_HISTORY, MAX_HISTORY);
             history[static_cast<size_t>(color.internal())][from.index()][to.index()] +=
                 bonus - history[static_cast<size_t>(color.internal())][from.index()][to.index()] * std::abs(bonus) / MAX_HISTORY;
+        }
+        void ClearHistory()
+        {
+            memset(history, 0x0, sizeof(history));
         }
 
     private:
