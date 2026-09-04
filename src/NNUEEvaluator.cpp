@@ -5,13 +5,21 @@
 
 LiquorChess::NNUEEvaluator::NNUEEvaluator()
 {
-    MantaRay::MarlinflowStream stream{"net0004-fixed.json"};
-    network = NeuralNetwork{stream};
+    if (std::filesystem::exists("liquor-eval.nnue"))
+    {
+        MantaRay::BinaryFileStream stream{ "liquor-eval.nnue" };
+        network = NeuralNetwork{stream};
+    } else
+    {
+        MantaRay::MarlinflowStream stream{"liquor-eval.json"};
+        network = NeuralNetwork{stream};
+    }
 }
 
 LiquorChess::NNUEEvaluator::~NNUEEvaluator()
 {
-
+    MantaRay::BinaryFileStream stream{ "liquor-eval.nnue" };
+    network.WriteTo(stream);
 }
 
 LiquorChess::Centipawn LiquorChess::NNUEEvaluator::Evaluate(const chess::Board& board)

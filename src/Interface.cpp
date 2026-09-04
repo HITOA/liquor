@@ -84,6 +84,7 @@ void LiquorChess::Interface::HandleEvent(Event* event)
 
     if (event->Is<QuitEvent>())
     {
+        engine = nullptr;
         running.store(false);
         return;
     }
