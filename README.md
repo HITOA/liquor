@@ -6,7 +6,8 @@ It works with classic negamax search and a 768-input NNUE eval.
 
 ### Features
 
-Here is a list of all the features of the engine by categories. The engine supports the Universal Chess Interface (UCI)  
+Here is a list of all the features of the engine by categories.  
+The engine supports the Universal Chess Interface (UCI)  
 as the main way to communicate.
 
 Board Representation & Move Generation:
